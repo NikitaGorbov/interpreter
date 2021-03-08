@@ -14,7 +14,8 @@ enum OPERATOR {
 int PRIORITY[] = {
     -1, -1,
     0, 0,
-    1
+    1,
+    666
 };
 
 class Lexem {
@@ -127,8 +128,7 @@ std::vector<Lexem *> parseLexem(std::string codeline) {
     int number = 0;
 
     for (int i = 0; i <= codeline.size(); i++) {
-        if (codeline[i] == ' ') {
-        }
+
         number = 0;
         // If it's a digit, read the whole number
         if (codeline[i] >= '0' && codeline[i] <= '9') {
@@ -147,16 +147,24 @@ std::vector<Lexem *> parseLexem(std::string codeline) {
             Oper *op = NULL;
             switch (codeline[i]) {
 
-                case '+' :
+                case '+':
                 op = new Oper('+');
                 break;
 
-                case '-' :
+                case '-':
                 op = new Oper('-');
                 break;
 
-                case '*' :
+                case '*':
                 op = new Oper('*');
+                break;
+
+                case '(':
+                op = new Oper('(');
+                break;
+
+                case ')':
+                op = new Oper(')');
                 break;
 
                 case ' ':
@@ -175,12 +183,29 @@ std::vector<Lexem *> buildPoliz(std::vector<Lexem *> infix) {
     std::stack<Lexem *> operators;
 
     for (Lexem* i : infix) {
+
         // push numbers to poliz
         if ((typeid(*i) != typeid(Oper))) {
             poliz.push_back(i);
         } else if (operators.size()) {
-            if (i -> getPriority() > operators.top() -> getPriority()) {
-                operators.push(i);
+            if (i -> getPriority() > operators.top() -> getPriority() ||
+                i -> getPriority() == PRIORITY[LBRACKET]) {
+                if (i -> getType() != RBRACKET) {
+                    operators.push(i);
+
+                } else {
+                    while (1) {
+                        if (operators.top() -> getType() == LBRACKET) {
+                            operators.pop();
+                            break;
+
+                        } else {
+                            poliz.push_back(operators.top());
+                            operators.pop();
+                        }
+                    }
+                }
+
             // move all operators to poliz
             } else {
                 while (operators.size()) {
@@ -189,6 +214,7 @@ std::vector<Lexem *> buildPoliz(std::vector<Lexem *> infix) {
                 }
                 operators.push(i);
             }
+
         // operator stack is empty
         } else {
             operators.push(i);
@@ -204,55 +230,59 @@ std::vector<Lexem *> buildPoliz(std::vector<Lexem *> infix) {
 }
 
 int evaluatePoliz(std::vector<Lexem *> poliz) {
-    std::stack<Lexem *> tempStack;
-    int tempNum = 0;
+    std::stack<Lexem *> computing;
+    int tempNum;
     OPERATOR type;
+    Lexem *newTempResult = 0;
+    
+    for (auto i : poliz) {
+        if ((typeid(*i) == typeid(Number))) {
+            computing.push(i);
+        } else if (computing.size() > 1) {
+            Lexem *right = computing.top();
+            computing.pop();
+            Lexem *left = computing.top();
+            computing.pop();
+            type = i -> getType();
+            switch (type) {
+                case PLUS:
+                tempNum = left -> getValue() + right -> getValue();
+                break;
 
-    while (poliz.size() > 1) {
-        for (int i = 0; i < poliz.size(); i++) {
-            if ((typeid(*(poliz.at(i))) == typeid(Oper))) {
-                if (!poliz.at(i-1) || !poliz.at(i-2)) {
-                    std::cout << "Something's wrong" << std::endl;
-                }
-                if (i > 0) {
-                    type = poliz.at(i) -> getType();
-                    switch (type) {
-                        case PLUS:
-                        tempNum = poliz.at(i - 2) -> getValue() + poliz.at(i - 1) -> getValue();
-                        break;
+                case MINUS:
+                tempNum = left -> getValue() - right -> getValue();
+                break;
 
-                        case MINUS:
-                        tempNum = poliz.at(i - 2) -> getValue() - poliz.at(i - 1) -> getValue();
-                        break;
-
-                        case MULTIPLY:
-                        tempNum = poliz.at(i - 2) -> getValue() * poliz.at(i - 1) -> getValue();
-                        break;
-                    }
-                    Lexem* newTempNum = new Number(tempNum);
-                    tempStack.push(newTempNum);
-                    poliz.erase(poliz.begin() + i - 2, poliz.begin() + i + 1);
-
-                    poliz.insert(poliz.begin() + i - 2, newTempNum);
-                    break;
-                } else {
-                    std::cout << "Incorrect notation" << std::endl;
-                    return 0;
-                }
+                case MULTIPLY:
+                tempNum = left -> getValue() * right -> getValue();
+                break;
             }
+            if (newTempResult) {
+                delete newTempResult;
+            }
+            Lexem *newTempResult = new Number(tempNum);
+            computing.push(newTempResult);
+
+        } else {
+            std::cout << "Incorrect expression" << std::endl;
+            break;
         }
     }
-
-    while (tempStack.size()) {
-        delete tempStack.top();
-        tempStack.pop();
+    
+    if (computing.size() == 1){
+        tempNum = computing.top() -> getValue();
+        if (newTempResult) {
+            delete newTempResult;
+        }
+        return tempNum;
+    } else {
+        std::cout << "Something went wrong" << std::endl;
+        return 0;
     }
-    return tempNum;
 }
 
 int main() {
     std::string codeline;
-
     std::vector<Lexem *> infix;
     std::vector<Lexem *> postfix;
     int value;
@@ -260,6 +290,9 @@ int main() {
     while (1) {
         std::cout << "> ";
         std::getline(std::cin, codeline);
+        if (std::cin.eof()) {
+            break;
+        }
         infix = parseLexem(codeline);
         
         postfix = buildPoliz(infix);
