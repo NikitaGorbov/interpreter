@@ -6,20 +6,50 @@
 #include <map>
 
 enum OPERATOR {
-    LBRACKET, RBRACKET,
     ASSIGN,
+    LBRACKET, RBRACKET,
+    OR,
+    AND,
+    BITOR,
+    XOR,
+    BITAND,
+    EQ, NEQ,
+    LEQ, LT, GEQ, GT,
+    SHL, SHR,
     PLUS, MINUS,
-    MULTIPLY,
-    NOT_OPERATOR
+    MULTIPLY, DIV, MOD,
 };
 
 int PRIORITY[] = {
-    -1, -1,
-    0,
-    1, 1,
+    -1,
+    0, 0,
+    1,
     2,
-    666
+    3,
+    4,
+    5,
+    6, 6,
+    7, 7, 7, 7,
+    8, 8,
+    9, 9,
+    10, 10, 10,
 };
+
+std::string OPERTEXT [] = {
+    " := " ,
+    "(", ")",
+    " or " ,
+    " and " ,
+    "|",
+    "^",
+    "&",
+    " == " , " != " ,
+    " <= " , " <" , " >= " , " >" ,
+    " shl" , " shr" ,
+    " + " , " -" ,
+    "*", "/", "%"
+};
+
 
 class Lexem {
 public:
@@ -47,7 +77,7 @@ void Lexem::setValue(int) {
 }
 
 ::OPERATOR Lexem::getType() {
-    return NOT_OPERATOR;
+    return ASSIGN;
 }
 
 Lexem::Lexem() {}
@@ -99,21 +129,92 @@ Oper::Oper(OPERATOR opertype) : opertype(opertype) {}
 int Oper::getResult(Lexem* left, Lexem* right) {
     int ans = 0;
     switch (opertype) {
-        case PLUS:
-        ans = left -> getValue() + right -> getValue();
+
+        case ASSIGN:
+        left -> setValue(right -> getValue());
+        ans = left -> getValue();
         break;
 
-        case MULTIPLY:
-        ans = left -> getValue() * right -> getValue();
+        case OR:
+        (left -> getValue() || right -> getValue()) ? ans = 1 : ans = 0;
+        break;
+
+        case AND:
+        ans = (left -> getValue() && right -> getValue());
+        break;
+
+        case BITOR:
+        ans = (left -> getValue() | right -> getValue());
+        break;
+
+        case XOR:
+        ans = (left -> getValue() ^ right -> getValue());
+        break;
+
+        case BITAND:
+        ans = (left -> getValue() & right -> getValue());
+        break;
+
+        case EQ:
+        ans = (left -> getValue() == right -> getValue());
+        break;
+
+        case NEQ:
+        ans = (left -> getValue() != right -> getValue());
+        break;
+
+        case LEQ:
+        ans = left -> getValue() <= right -> getValue();
+        break;
+
+        case LT:
+        ans = left -> getValue() < right -> getValue();
+        break;
+
+        case GEQ:
+        ans = left -> getValue() >= right -> getValue();
+        break;
+
+        case GT:
+        ans = left -> getValue() > right -> getValue();
+        break;
+
+        case SHL:
+        ans = left -> getValue() << right -> getValue();
+        break;
+
+        case SHR:
+        ans = left -> getValue() >> right -> getValue();
+        break;
+
+        case PLUS:
+        ans = left -> getValue() + right -> getValue();
         break;
 
         case MINUS:
         ans = left -> getValue() - right -> getValue();
         break;
 
-        case ASSIGN:
-        left -> setValue(right -> getValue());
-        ans = left -> getValue();
+        case MULTIPLY:
+        ans = left -> getValue() * right -> getValue();
+        break;
+
+        case DIV:
+        if (right -> getValue() != 0) {
+            ans = left -> getValue() / right -> getValue();
+        } else {
+            std::cout << "Devision by zero!" << std::endl;
+            ans = 0;
+        }
+        break;
+
+        case MOD:
+        if (right -> getValue() != 0) {
+            ans = left -> getValue() % right -> getValue();
+        } else {
+            std::cout << "Devision by zero!" << std::endl;
+            ans = 0;
+        }
         break;
 
         default:
@@ -174,6 +275,19 @@ Number *read_number(std::string codeline, int *pos) {
     return num;
 }
 
+Oper *read_operator(std::string codeline, int *pos) {
+    int n = sizeof(OPERTEXT) / sizeof(std::string);
+
+    for (int op = 0; op < n; op++) {
+        std::string subcodeline = codeline.substr(*pos, OPERTEXT[op].size());
+        if (!OPERTEXT[op].compare(subcodeline)) {
+            *pos += subcodeline.size() - 1;
+            return new Oper((OPERATOR)op);
+        }
+    }
+    return nullptr;
+}
+
 Variable *read_variable(std::string codeline, int *pos) {
     Variable *tmp = nullptr;
 
@@ -215,44 +329,17 @@ std::vector<Lexem *> parseLexem(std::string codeline) {
             continue;
         }
 
+        newLexem = read_operator(codeline, &i);
+        if (newLexem) {
+            Lex.push_back(newLexem);
+            continue;
+        }
+
         newLexem = read_variable(codeline, &i);
         if (newLexem) {
             Lex.push_back(newLexem);
             continue;
-        } else {
-            Oper *op = NULL;
-            switch (codeline[i]) {
-                case '+':
-                op = new Oper(PLUS);
-                break;
-
-                case '-':
-                op = new Oper(MINUS);
-                break;
-
-                case '*':
-                op = new Oper(MULTIPLY);
-                break;
-
-                case '(':
-                op = new Oper(LBRACKET);
-                break;
-
-                case ')':
-                op = new Oper(RBRACKET);
-                break;
-
-                case '=':
-                op = new Oper(ASSIGN);
-                break;
-
-                case ' ':
-                break;
-            }
-            if (op) {
-                Lex.push_back(op);
-            }
-        }
+        } 
     }
     return Lex;
 }
