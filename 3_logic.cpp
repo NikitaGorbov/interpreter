@@ -258,7 +258,6 @@ int evaluatePoliz(std::vector<Lexem *> poliz);
 
 Number *read_number(std::string codeline, int *pos) {
     int number = 0;
-    Number *num = nullptr;
 
     if (codeline[*pos] >= '0' && codeline[*pos] <= '9') {
         for (int j = *pos; j <= codeline.size(); j++) {
@@ -267,12 +266,11 @@ Number *read_number(std::string codeline, int *pos) {
             } else {
                 // set pos to position after number
                 *pos = j - 1;
-                num = new Number(number);
-                break;
+                return new Number(number);
             }
         }
     }
-    return num;
+    return nullptr;
 }
 
 Oper *read_operator(std::string codeline, int *pos) {
@@ -348,41 +346,38 @@ std::vector<Lexem *> buildPoliz(std::vector<Lexem *> infix) {
     std::vector<Lexem *> poliz;
     std::stack<Lexem *> operators;
 
-    for (Lexem* i : infix) {
+    for (Lexem* curLexem : infix) {
         // push numbers to poliz
-        if ((typeid(*i) != typeid(Oper))) {
-            poliz.push_back(i);
+        if ((typeid(*curLexem) != typeid(Oper))) {
+            poliz.push_back(curLexem);
         } else if (operators.size()) {
-            if (i -> getPriority() > operators.top() -> getPriority() ||
-                i -> getPriority() == PRIORITY[LBRACKET]) {
-                if (i -> getType() != RBRACKET) {
-                    operators.push(i);
+            if (curLexem -> getPriority() > operators.top() -> getPriority() ||
+                curLexem -> getPriority() == PRIORITY[LBRACKET]) {
+                if (curLexem -> getType() != RBRACKET) {
+                    operators.push(curLexem);
 
                 } else {
-                    while (1) {
-                        if (operators.top() -> getType() == LBRACKET) {
-                            operators.pop();
-                            break;
-
-                        } else {
+                    while (operators.top() -> getType() != LBRACKET) {
                             poliz.push_back(operators.top());
                             operators.pop();
-                        }
+                    }
+                    if (operators.top() -> getType() == LBRACKET) {
+                        operators.pop();
                     }
                 }
 
-            // move all operators to poliz
             } else {
+                // move all operators to poliz
                 while (operators.size()) {
                     poliz.push_back(operators.top());
                     operators.pop();
                 }
-                operators.push(i);
+                operators.push(curLexem);
             }
 
-        // operator stack is empty
         } else {
-            operators.push(i);
+            // operator stack is empty
+            operators.push(curLexem);
         }
     }
 
@@ -430,10 +425,18 @@ int evaluatePoliz(std::vector<Lexem *> poliz) {
             delete newTempResult;
         }
         return tempNum;
-    } else {
-        std::cout << "Something went wrong" << std::endl;
-        return 0;
     }
+    std::cout << "Something went wrong" << std::endl;
+    return 0;
+}
+
+bool greeting(std::string *codeline) {
+    std::cout << "> ";
+    std::getline(std::cin, *codeline);
+    if (std::cin.eof()) {
+        return false;
+    }
+    return true;
 }
 
 int main() {
@@ -442,12 +445,7 @@ int main() {
     std::vector<Lexem *> postfix;
     int value;
 
-    while (1) {
-        std::cout << "> ";
-        std::getline(std::cin, codeline);
-        if (std::cin.eof()) {
-            break;
-        }
+    while (greeting(&codeline)) {
         infix = parseLexem(codeline);
 
         postfix = buildPoliz(infix);
