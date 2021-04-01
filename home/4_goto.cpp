@@ -6,6 +6,7 @@
 #include <map>
 
 enum OPERATOR {
+    GOTO, COLON,
     ASSIGN,
     LBRACKET, RBRACKET,
     OR,
@@ -21,6 +22,7 @@ enum OPERATOR {
 };
 
 int PRIORITY[] = {
+    -1, -1,
     -1,
     0, 0,
     1,
@@ -36,6 +38,7 @@ int PRIORITY[] = {
 };
 
 std::string OPERTEXT [] = {
+    "goto", ":",
     " := " ,
     "(", ")",
     " or " ,
@@ -60,6 +63,7 @@ public:
     virtual void setValue(int);
     virtual ::OPERATOR getType();
     virtual int getResult(Lexem*, Lexem*);
+    virtual std::string getName() {};
     virtual ~Lexem();
 };
 
@@ -234,6 +238,7 @@ public:
     Variable(std::string, int);
     int getValue();
     void setValue(int value);
+    std::string getName();
 };
 
 Variable::Variable(std::string name, int value = 0) : name(name), value(value) {}
@@ -246,13 +251,16 @@ void Variable::setValue(int newValue) {
     value = newValue;
 }
 
+std::string Variable::getName() {
+    return name;
+}
+
 std::map<std::string, Variable*> variablesMap;
+std::map<std::string, int> labelsMap;
 
-std::vector<Lexem *> parseLexem(
-    std::string codeline);
+std::vector<Lexem *> parseLexem(std::string codeline);
 
-std::vector<Lexem *> buildPoliz(
-    std::vector<Lexem *> infix);
+std::vector<Lexem *> buildPoliz(std::vector<Lexem *> infix);
 
 int evaluatePoliz(std::vector<Lexem *> poliz);
 
@@ -347,6 +355,9 @@ std::vector<Lexem *> buildPoliz(std::vector<Lexem *> infix) {
     std::stack<Lexem *> operators;
 
     for (Lexem* curLexem : infix) {
+        if (!curLexem) {
+            continue;
+        }
         // push numbers to poliz
         if ((typeid(*curLexem) != typeid(Oper))) {
             poliz.push_back(curLexem);
@@ -389,24 +400,33 @@ std::vector<Lexem *> buildPoliz(std::vector<Lexem *> infix) {
     return poliz;
 }
 
-int evaluatePoliz(std::vector<Lexem *> poliz) {
+int evaluatePoliz(std::vector<Lexem *> poliz, int row, int *result) {
     std::stack<Lexem *> computing;
     int tempNum;
     OPERATOR type;
     Lexem *newTempResult = nullptr;
 
-    for (auto i : poliz) {
-        if ((typeid(*i) == typeid(Number)) ||
-            (typeid(*i) == typeid(Variable))) {
-            computing.push(i);
-        } else if (computing.size() > 1) {
+    for (auto lexemIter : poliz) {
+        if (!lexemIter) {
+            continue;
+        }
+        if ((typeid(*lexemIter) == typeid(Number)) ||
+            (typeid(*lexemIter) == typeid(Variable))) {
+            computing.push(lexemIter);
+        } else if (computing.size() > 0) {
+            if (lexemIter -> getType() == GOTO) {
+                int newRow = labelsMap[computing.top() -> getName()];
+                computing.pop();
+                std::cout << "jumping to " << newRow << std::endl;
+                return newRow;
+            }
             Lexem *right = computing.top();
             computing.pop();
             Lexem *left = computing.top();
             computing.pop();
 
             // get result of operation
-            tempNum = i -> getResult(left, right);
+            tempNum = lexemIter -> getResult(left, right);
             if (newTempResult) {
                 delete newTempResult;
             }
@@ -424,39 +444,68 @@ int evaluatePoliz(std::vector<Lexem *> poliz) {
         if (newTempResult) {
             delete newTempResult;
         }
-        return tempNum;
+        *result = tempNum;
+        return row + 1;
     }
-    std::cout << "Something went wrong" << std::endl;
-    return 0;
+    //std::cout << "Something went wrong" << std::endl;
+    return row + 1;
 }
 
-bool greeting(std::string *codeline) {
-    std::cout << "> ";
+bool prompt(std::string *codeline) {
+    
     std::getline(std::cin, *codeline);
     if (std::cin.eof()) {
         return false;
     }
+    std::cout << "> ";
     return true;
+}
+
+void initLabels(std::vector<Lexem *> &infix, int row) {
+    for (int i = 1; i < (int)infix.size(); i++) {
+        Variable *varptr = dynamic_cast<Variable*>(infix[i - 1]);
+        Oper *operptr = dynamic_cast<Oper*>(infix[i]);
+        if (varptr && operptr) {
+            if (operptr -> getType() == COLON) {
+                labelsMap[varptr -> getName()] = row;
+                //delete infix[i - 1];
+                delete infix[i];
+                infix[i - 1] = nullptr;
+                infix[i] = nullptr;
+                i++;
+                std::cout << "Label inited" << std::endl;
+            }
+        }
+    }
 }
 
 int main() {
     std::string codeline;
-    std::vector<Lexem *> infix;
-    std::vector<Lexem *> postfix;
+    std::vector< std::vector<Lexem *> > infixLines, polizLines;
     int value;
 
-    while (greeting(&codeline)) {
-        infix = parseLexem(codeline);
+    std::cout << "Send EOF to execute (ctrl + D)\n> ";
 
-        postfix = buildPoliz(infix);
-        value = evaluatePoliz(postfix);
-        for (Lexem* lexem : infix) {
-            if (typeid(*lexem) != typeid(Variable)) {
-                delete lexem;
-            }
-        }
-        infix.clear();
-        std::cout << value << std::endl;
+    while (prompt(&codeline)) {
+        infixLines.push_back(parseLexem(codeline));
     }
+
+    std::cout << std::endl;
+
+    for (int row = 0; row < (int)infixLines.size(); row++) {
+        initLabels(infixLines[row], row);
+    }
+
+    for (const auto &infix: infixLines) {
+        polizLines.push_back(buildPoliz(infix));
+    }
+
+    int row = 0;
+    int result = 0;
+    while (0 <= row && row < (int)polizLines.size()) {
+        row = evaluatePoliz(polizLines[row], row, &result);
+        std::cout << row << ": " << result << std::endl;
+    }
+    
     return 0;
 }
