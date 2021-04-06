@@ -80,7 +80,7 @@ int Lexem::getValue() {
 void Lexem::setValue(int) {
 }
 
-::OPERATOR Lexem::getType() {
+OPERATOR Lexem::getType() {
     return ASSIGN;
 }
 
@@ -126,7 +126,7 @@ void Oper::debugPoliz() {
 
 Oper::Oper(OPERATOR opertype) : opertype(opertype) {}
 
-::OPERATOR Oper::getType() {
+OPERATOR Oper::getType() {
     return opertype;
 }
 
@@ -140,7 +140,7 @@ int Oper::getResult(Lexem* left, Lexem* right) {
         break;
 
         case OR:
-        (left -> getValue() || right -> getValue()) ? ans = 1 : ans = 0;
+        ans = (left -> getValue() || right -> getValue());
         break;
 
         case AND:
@@ -473,7 +473,6 @@ void initLabels(std::vector<Lexem *> &infix, int row) {
                 infix[i - 1] = nullptr;
                 infix[i] = nullptr;
                 i++;
-                std::cout << "Label inited" << std::endl;
             }
         }
     }
