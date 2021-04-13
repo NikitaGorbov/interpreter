@@ -1,0 +1,1 @@
+std::vector<Lexem *> buildPoliz(std::vector<Lexem *> infix);

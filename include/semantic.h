@@ -1,0 +1,1 @@
+int evaluatePoliz(std::vector<Lexem *>, int, int*);
