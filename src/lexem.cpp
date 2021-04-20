@@ -3,6 +3,9 @@
 #include "const.h"
 #include "lexem.h"
 
+extern std::map<std::string, int> labelsMap;
+extern std::map<int, int> conditionJumpLines;
+
 int Lexem::getPriority() {
     return -1;
 }
@@ -20,7 +23,9 @@ OPERATOR Lexem::getType() {
     return ASSIGN;
 }
 
-int Lexem::getResult(Lexem*, Lexem*) {return 0;}
+int Lexem::getResultOne(Lexem*, bool*, int) {return 0;}
+
+int Lexem::getResultTwo(Lexem*, Lexem*) {return 0;}
 
 Lexem::Lexem() {}
 
@@ -50,7 +55,45 @@ OPERATOR Oper::getType() {
     return opertype;
 }
 
-int Oper::getResult(Lexem* left, Lexem* right) {
+int Oper::getResultOne(Lexem *operand, bool *jumpFlag, int row) {
+    int ans = 0;
+    switch (opertype) {
+
+        case GOTO:
+        ans = labelsMap[operand -> getName()];
+        *jumpFlag = true;
+        break;
+
+        case IF:
+        if (operand -> getValue() == 0) {
+            ans = conditionJumpLines[row];
+            *jumpFlag = true;
+        } else {
+            *jumpFlag = false;
+        }
+        break;
+
+        case WHILE:
+        if (operand -> getValue() == 0) {
+            ans = conditionJumpLines[row];
+            *jumpFlag = true;
+        } else {
+            *jumpFlag = false;
+        }
+        break;
+
+        case PRINT:
+        std::cout << operand -> getValue() << std::endl;
+        break;
+
+        default:
+        std::cout << "Unknown operator" << std::endl;
+    }
+
+    return ans;
+}
+
+int Oper::getResultTwo(Lexem* left, Lexem* right) {
     int ans = 0;
     switch (opertype) {
 

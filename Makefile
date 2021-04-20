@@ -8,7 +8,7 @@ debug: CC = g++
 debug: CFLAGS += -pedantic -fsanitize=leak,address
 debug: bin obj bin/interpreter
 
-obj: bin/const.o bin/lexem.o bin/main.o bin/lexical.o bin/semantic.o bin/syntax.o
+obj: bin/const.o bin/lexem.o bin/lexical.o bin/semantic.o bin/syntax.o  bin/main.o
 
 bin/const.o: src/const.cpp
 	$(CC) -c src/const.cpp -o bin/const.o $(CFLAGS)
@@ -28,8 +28,8 @@ bin/semantic.o: src/semantic.cpp
 bin/syntax.o: src/syntax.cpp
 	$(CC) -c src/syntax.cpp -o bin/syntax.o $(CFLAGS)
 
-bin/interpreter: bin/const.o bin/lexem.o bin/main.o bin/lexical.o bin/semantic.o bin/syntax.o
-	$(CC) bin/main.o bin/const.o bin/lexem.o bin/lexical.o bin/semantic.o bin/syntax.o $(CFLAGS) -o bin/interpreter
+bin/interpreter: bin/const.o bin/lexem.o bin/lexical.o bin/semantic.o bin/syntax.o bin/main.o
+	$(CC) bin/const.o bin/lexem.o bin/lexical.o bin/semantic.o bin/syntax.o bin/main.o $(CFLAGS) -o bin/interpreter
 
 bin:
 	mkdir -p bin

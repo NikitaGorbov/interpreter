@@ -5,7 +5,8 @@
 #define _CONST_H
 
 int PRIORITY[] = {
-    -1, -1,
+    -1, -1, -1, -1, -1, -1, -1,
+    -1,
     -1,
     0, 0,
     1,
@@ -21,7 +22,8 @@ int PRIORITY[] = {
 };
 
 std::string OPERTEXT [] = {
-    "goto", ":",
+    "if", "else", "endif", "while", "endwhile", "goto", ":",
+    "print",
     " := " ,
     "(", ")",
     " or " ,

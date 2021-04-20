@@ -18,23 +18,6 @@ bool prompt(std::string *codeline) {
     return true;
 }
 
-void initLabels(std::vector<Lexem *> &infix, int row) {
-    for (int i = 1; i < (int)infix.size(); i++) {
-        Variable *varptr = dynamic_cast<Variable*>(infix[i - 1]);
-        Oper *operptr = dynamic_cast<Oper*>(infix[i]);
-        if (varptr && operptr) {
-            if (operptr -> getType() == COLON) {
-                labelsMap[varptr -> getName()] = row;
-                //delete infix[i - 1];
-                delete infix[i];
-                infix[i - 1] = nullptr;
-                infix[i] = nullptr;
-                i++;
-            }
-        }
-    }
-}
-
 int main() {
     std::string codeline;
     std::vector< std::vector<Lexem *> > infixLines, polizLines;
@@ -51,6 +34,9 @@ int main() {
         initLabels(infixLines[row], row);
     }
 
+    initIfJumps(infixLines);
+    initWhileJumps(infixLines);
+
     for (const auto &infix: infixLines) {
         polizLines.push_back(buildPoliz(infix));
     }
@@ -59,7 +45,7 @@ int main() {
     int result = 0;
     while (0 <= row && row < (int)polizLines.size()) {
         row = evaluatePoliz(polizLines[row], row, &result);
-        std::cout << row << ": " << result << std::endl;
+        //std::cout << row << ": " << result << std::endl;
     }
     
     return 0;

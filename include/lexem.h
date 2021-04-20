@@ -12,7 +12,8 @@ public:
     virtual int getValue();
     virtual void setValue(int);
     virtual ::OPERATOR getType();
-    virtual int getResult(Lexem*, Lexem*);
+    virtual int getResultOne(Lexem*, bool*, int);
+    virtual int getResultTwo(Lexem*, Lexem*);
     virtual std::string getName();
     virtual ~Lexem();
 };
@@ -32,9 +33,9 @@ public:
     virtual void debugPoliz();
     OPERATOR getType();
     virtual int getPriority();
-    int getValue(const Number& left,
-                 const Number& right);
-    virtual int getResult(Lexem*, Lexem*);
+    int getValue(const Number& left, const Number& right);
+    virtual int getResultOne(Lexem*, bool*, int);
+    virtual int getResultTwo(Lexem*, Lexem*);
 };
 
 class Variable : public Lexem {

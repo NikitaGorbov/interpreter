@@ -2,7 +2,8 @@
 #define _CONST_H
 
 enum OPERATOR {
-    GOTO, COLON,
+    IF, ELSE, ENDIF, WHILE, ENDWHILE, GOTO, COLON,
+    PRINT,
     ASSIGN,
     LBRACKET, RBRACKET,
     OR,
