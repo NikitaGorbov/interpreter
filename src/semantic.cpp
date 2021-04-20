@@ -27,7 +27,7 @@ std::vector<int> findElse(std::vector< std::vector<Lexem *> > &infixLines, int s
     std::vector<int> elses;
 
     for (int i = startRow + 1; i < (int)infixLines.size(); i++) {
-        if (infixLines[i][0]) {
+        if (infixLines[i].size()) {
             Oper *operptr = dynamic_cast<Oper*>(infixLines[i][0]);
             if (operptr) {
                 if (operptr -> getType() == ELSE) {
@@ -43,7 +43,7 @@ std::vector<int> findEndif(std::vector< std::vector<Lexem *> > &infixLines, int 
     std::vector<int> endifs;
 
     for (int i = startRow + 1; i < (int)infixLines.size(); i++) {
-        if (infixLines[i][0]) {
+        if (infixLines[i].size()) {
             Oper *operptr = dynamic_cast<Oper*>(infixLines[i][0]);
             if (operptr) {
                 if (operptr -> getType() == ENDIF) {
@@ -59,7 +59,7 @@ std::vector<int> findEndwhiles(std::vector< std::vector<Lexem *> > &infixLines, 
     std::vector<int> endwhiles;
 
     for (int i = startRow + 1; i < (int)infixLines.size(); i++) {
-        if (infixLines[i][0]) {
+        if (infixLines[i].size()) {
             Oper *operptr = dynamic_cast<Oper*>(infixLines[i][0]);
             if (operptr) {
                 if (operptr -> getType() == ENDWHILE) {
@@ -78,7 +78,7 @@ void initIfJumps(std::vector< std::vector<Lexem *> > &infixLines) {
     int ifLinesSize;
 
     for (int i = 0; i < (int)infixLines.size(); i++) {
-        if (infixLines[i][0]) {
+        if (infixLines[i].size()) {
             Oper *operptr = dynamic_cast<Oper*>(infixLines[i][0]);
             if (operptr) {
                 if (operptr -> getType() == IF) {
@@ -112,7 +112,7 @@ void initWhileJumps(std::vector <std::vector<Lexem*> > &infixLines) {
     int whileLinesSize;
 
     for (int i = 0; i < (int)infixLines.size(); i++) {
-        if (infixLines[i][0]) {
+        if (infixLines[i].size()) {
             Oper *operptr = dynamic_cast<Oper*>(infixLines[i][0]);
             if (operptr) {
                 if (operptr -> getType() == WHILE) {
@@ -171,8 +171,7 @@ int evaluatePoliz(std::vector<Lexem *> poliz, int row, int *result) {
                 tempNum = lexemIter -> getResultTwo(left, right);
             }
 
-            // get result of operation
-            
+            // get result of operation  
             if (newTempResult) {
                 delete newTempResult;
             }
