@@ -8,6 +8,8 @@
 #include "syntax.h"
 #include "semantic.h"
 
+extern std::map<std::string, Array*> arraysMap;
+
 bool prompt(std::string *codeline) {
     
     std::getline(std::cin, *codeline);
@@ -37,6 +39,10 @@ int main() {
     initIfJumps(infixLines);
     initWhileJumps(infixLines);
 
+    for (int i = 0; i < (int)infixLines.size(); i++) {
+        analizeArrayElements(infixLines[i]);
+    }
+
     for (const auto &infix: infixLines) {
         polizLines.push_back(buildPoliz(infix));
     }
@@ -45,7 +51,6 @@ int main() {
     int result = 0;
     while (0 <= row && row < (int)polizLines.size()) {
         row = evaluatePoliz(polizLines[row], row, &result);
-        //std::cout << row << ": " << result << std::endl;
     }
     
     return 0;

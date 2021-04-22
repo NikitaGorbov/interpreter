@@ -7,13 +7,10 @@
 class Lexem {
 public:
     Lexem();
-    virtual void debugPoliz();
     virtual int getPriority();
     virtual int getValue();
     virtual void setValue(int);
     virtual ::OPERATOR getType();
-    virtual int getResultOne(Lexem*, bool*, int);
-    virtual int getResultTwo(Lexem*, Lexem*);
     virtual std::string getName();
     virtual ~Lexem();
 };
@@ -21,7 +18,6 @@ public:
 class Number : public Lexem {
     int value;
 public:
-    virtual void debugPoliz();
     Number(int);
     virtual int getValue();
 };
@@ -30,12 +26,11 @@ class Oper : public Lexem {
     OPERATOR opertype;
 public:
     Oper(OPERATOR);
-    virtual void debugPoliz();
     OPERATOR getType();
-    virtual int getPriority();
+    int getPriority();
     int getValue(const Number& left, const Number& right);
-    virtual int getResultOne(Lexem*, bool*, int);
-    virtual int getResultTwo(Lexem*, Lexem*);
+    int getResultOne(Lexem*, bool*, int);
+    int getResultTwo(Lexem*, Lexem*);
 };
 
 class Variable : public Lexem {
@@ -46,6 +41,17 @@ public:
     int getValue();
     void setValue(int value);
     std::string getName();
+};
+
+class Array : public Lexem {
+    int *data;
+    int size;
+    std::string name;
+public:
+    Array(std::string, int);
+    ~Array();
+    int getData(int);
+    void setData(int, int);
 };
 
 #endif

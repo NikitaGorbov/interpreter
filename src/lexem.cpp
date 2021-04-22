@@ -5,12 +5,11 @@
 
 extern std::map<std::string, int> labelsMap;
 extern std::map<int, int> conditionJumpLines;
+extern std::map<std::string, Array*> arraysMap;
 
 int Lexem::getPriority() {
     return -1;
 }
-
-void Lexem::debugPoliz() {}
 
 int Lexem::getValue() {
     return 0;
@@ -20,20 +19,12 @@ void Lexem::setValue(int) {
 }
 
 OPERATOR Lexem::getType() {
-    return ASSIGN;
+    //return ASSIGN;
 }
-
-int Lexem::getResultOne(Lexem*, bool*, int) {return 0;}
-
-int Lexem::getResultTwo(Lexem*, Lexem*) {return 0;}
 
 Lexem::Lexem() {}
 
 Lexem::~Lexem() {}
-
-void Number::debugPoliz() {
-    std::cout << value << " ";
-}
 
 Number::Number(int number) : value(number) {}
 
@@ -43,10 +34,6 @@ int Number::getValue() {
 
 std::string Lexem::getName() {
     return "ERROR";
-}
-
-void Oper::debugPoliz() {
-    std::cout << "op" <<  opertype << " ";
 }
 
 Oper::Oper(OPERATOR opertype) : opertype(opertype) {}
@@ -184,6 +171,22 @@ int Oper::getResultTwo(Lexem* left, Lexem* right) {
         }
         break;
 
+        case SIZE:
+        {
+            Array *newArray = new Array(left -> getName(), right -> getValue());
+            arraysMap[left -> getName()] = newArray;
+            std::cout << "Created array " << left -> getName() << std::endl;
+        }
+        break;
+
+        case RVALUEARRAY:
+        if (arraysMap.find(left -> getName()) == arraysMap.end()) {
+            std::cout << left -> getName() << " was not allocated" << std::endl;
+            break;
+        }
+        ans = arraysMap[left -> getName()] -> getData(right -> getValue());
+        break;
+
         default:
         std::cout << "Unknown operator" << std::endl;
     }
@@ -206,4 +209,32 @@ void Variable::setValue(int newValue) {
 
 std::string Variable::getName() {
     return name;
+}
+
+Array::Array(std::string name, int newSize) : name(name) {
+    if (data) {
+        delete[] data;
+    }
+    data = new int(newSize);
+    size = newSize;
+}
+
+Array::~Array() {
+    delete[] data;
+}
+
+int Array::getData(int position) {
+    if (position < size) {
+        return data[position];
+    }
+    std::cout << "out of range" << std::endl;
+    return 0;
+}
+
+void Array::setData(int position, int value) {
+    if (position < size) {
+        data[position] = value;
+    } else {
+        std::cout << position << " is out of range" << std::endl;
+    }
 }

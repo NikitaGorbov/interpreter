@@ -7,6 +7,7 @@
 std::map<std::string, Variable*> variablesMap;
 std::map<std::string, int> labelsMap;
 std::map<int, int> conditionJumpLines;
+std::map<std::string, Array*> arraysMap;
 
 Number *read_number(std::string codeline, int *pos) {
     int number = 0;

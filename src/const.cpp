@@ -8,7 +8,10 @@ int PRIORITY[] = {
     -1, -1, -1, -1, -1, -1, -1,
     -1,
     -1,
-    0, 0,
+    -1,
+    -1,
+    0, 0, 0, 0,
+    1,
     1,
     2,
     3,
@@ -24,8 +27,11 @@ int PRIORITY[] = {
 std::string OPERTEXT [] = {
     "if", "else", "endif", "while", "endwhile", "goto", ":",
     "print",
+    "size",
     " := " ,
-    "(", ")",
+    "lvalue",
+    "(", ")", "[", "]",
+    "rvalue",
     " or " ,
     " and " ,
     "|",
@@ -34,7 +40,7 @@ std::string OPERTEXT [] = {
     " == " , " != " ,
     " <= " , " <" , " >= " , " >" ,
     " shl" , " shr" ,
-    " + " , " -" ,
+    "+" , " -" ,
     "*", "/", "%"
 };
 

@@ -6,6 +6,8 @@
 #include "lexical.h"
 #include "semantic.h"
 
+extern std::map<std::string, Array*> arraysMap;
+
 void initLabels(std::vector<Lexem *> &infix, int row) {
     for (int i = 1; i < (int)infix.size(); i++) {
         Variable *varptr = dynamic_cast<Variable*>(infix[i - 1]);
@@ -69,6 +71,56 @@ std::vector<int> findEndwhiles(std::vector< std::vector<Lexem *> > &infixLines, 
         }
     }
     return endwhiles;
+}
+
+void analizeArrayElements(std::vector<Lexem *> &infix) {
+    int assignLocation = -1;
+    std::stack<int> arrayElementsLocations;
+    int currentArrPosition;
+
+    if (!infix.size()) {
+        return;
+    }
+
+    for (int i = 0; i < (int)infix.size() - 1; i++) {
+        if (infix[i] -> getType() == ASSIGN) {
+            assignLocation = i;
+        } else {
+            Variable *varptr = dynamic_cast<Variable*>(infix[i]);
+            if ((varptr) && (infix[i+1] -> getType() == LSQRBRACKET)) {
+                arrayElementsLocations.push(i);
+            }
+        }
+    }
+
+    while (arrayElementsLocations.size()) {
+        currentArrPosition = arrayElementsLocations.top();
+        if (assignLocation > currentArrPosition && arrayElementsLocations.size() == 1) {
+            // lvalue found
+            Oper *lvalue = new Oper(LVALUEARRAY);
+            delete infix[currentArrPosition+1];
+            delete infix[assignLocation];
+            infix[currentArrPosition+1] = lvalue;
+            infix[assignLocation] = nullptr;
+        } else {
+            // rvalue found
+            Oper *rvalue = new Oper(RVALUEARRAY);
+            delete infix[currentArrPosition+1];
+            infix[currentArrPosition+1] = rvalue;
+        }
+        int i = currentArrPosition + 1;
+        while (i < (int)infix.size()) {
+            // remove corresponding right square bracket
+            if (infix[i] && infix[i] -> getType() == RSQRBRACKET) {
+                delete infix[i];
+                infix[i] = nullptr;
+                break;
+            }
+            i++;
+        }
+        arrayElementsLocations.pop();
+    }
+
 }
 
 void initIfJumps(std::vector< std::vector<Lexem *> > &infixLines) {
@@ -144,23 +196,37 @@ int evaluatePoliz(std::vector<Lexem *> poliz, int row, int *result) {
     int tempNum;
     Lexem *newTempResult = nullptr;
     bool jumpFlag = false;
+    Oper *lexemOper = nullptr;
 
     for (auto lexemIter : poliz) {
         if (!lexemIter) {
             continue;
         }
-        if ((typeid(*lexemIter) == typeid(Number)) ||
-            (typeid(*lexemIter) == typeid(Variable))) {
+        lexemOper = dynamic_cast<Oper*>(lexemIter);
+        if (!lexemOper) {
             computing.push(lexemIter);
+            // std::cout << "size of computing: " << computing.size() << std::endl;
         } else if (computing.size() > 0) {
 
             if (computing.size() == 1) {
                 Lexem *operand = computing.top();
                 computing.pop();
-                tempNum = lexemIter -> getResultOne(operand, &jumpFlag, row);
+                tempNum = lexemOper -> getResultOne(operand, &jumpFlag, row);
                 if (jumpFlag) {
                     return tempNum;
                 }
+            }
+
+            if (lexemOper -> getType() == LVALUEARRAY && computing.size() > 2) {
+                // std::cout << "here" << std::endl;
+                Lexem *first = computing.top();
+                computing.pop();
+                Lexem *second = computing.top();
+                computing.pop();
+                Lexem *third = computing.top();
+                computing.pop();
+
+                arraysMap[third -> getName()] -> setData(second -> getValue(), first -> getValue());
             }
 
             if (computing.size() > 1) {
@@ -168,10 +234,10 @@ int evaluatePoliz(std::vector<Lexem *> poliz, int row, int *result) {
                 computing.pop();
                 Lexem *left = computing.top();
                 computing.pop();
-                tempNum = lexemIter -> getResultTwo(left, right);
+                tempNum = lexemOper -> getResultTwo(left, right);
             }
-
-            // get result of operation  
+            
+            // get result of operation
             if (newTempResult) {
                 delete newTempResult;
             }
