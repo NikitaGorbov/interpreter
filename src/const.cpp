@@ -24,7 +24,7 @@ int PRIORITY[] = {
     10, 10, 10,
 };
 
-std::string OPERTEXT [] = {
+std::string OPERTEXT[] = {
     "if", "else", "endif", "while", "endwhile", "goto", ":",
     "print",
     "size",

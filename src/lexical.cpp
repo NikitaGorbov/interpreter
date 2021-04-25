@@ -27,7 +27,6 @@ Number *read_number(std::string codeline, int *pos) {
 }
 
 Oper *read_operator(std::string codeline, int *pos) {
-
     for (int op = 0; op < OP_NUM; op++) {
         std::string subcodeline = codeline.substr(*pos, OPERTEXT[op].size());
         if (!OPERTEXT[op].compare(subcodeline)) {
@@ -89,7 +88,7 @@ std::vector<Lexem *> parseLexem(std::string codeline) {
         if (newLexem) {
             Lex.push_back(newLexem);
             continue;
-        } 
+        }
     }
     return Lex;
 }

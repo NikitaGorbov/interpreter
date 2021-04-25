@@ -19,7 +19,7 @@ void Lexem::setValue(int) {
 }
 
 OPERATOR Lexem::getType() {
-    //return ASSIGN;
+    // return ASSIGN;
 }
 
 Lexem::Lexem() {}
@@ -45,7 +45,6 @@ OPERATOR Oper::getType() {
 int Oper::getResultOne(Lexem *operand, bool *jumpFlag, int row) {
     int ans = 0;
     switch (opertype) {
-
         case GOTO:
         ans = labelsMap[operand -> getName()];
         *jumpFlag = true;
@@ -83,7 +82,6 @@ int Oper::getResultOne(Lexem *operand, bool *jumpFlag, int row) {
 int Oper::getResultTwo(Lexem* left, Lexem* right) {
     int ans = 0;
     switch (opertype) {
-
         case ASSIGN:
         left -> setValue(right -> getValue());
         ans = left -> getValue();

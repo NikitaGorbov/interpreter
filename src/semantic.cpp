@@ -25,7 +25,7 @@ void initLabels(std::vector<Lexem *> &infix, int row) {
     }
 }
 
-std::vector<int> findElse(std::vector< std::vector<Lexem *> > &infixLines, int startRow) {
+std::vector<int> findElse(const std::vector< std::vector<Lexem *> > &infixLines, int startRow) {
     std::vector<int> elses;
 
     for (int i = startRow + 1; i < (int)infixLines.size(); i++) {
@@ -55,22 +55,6 @@ std::vector<int> findEndif(std::vector< std::vector<Lexem *> > &infixLines, int 
         }
     }
     return endifs;
-}
-
-std::vector<int> findEndwhiles(std::vector< std::vector<Lexem *> > &infixLines, int startRow) {
-    std::vector<int> endwhiles;
-
-    for (int i = startRow + 1; i < (int)infixLines.size(); i++) {
-        if (infixLines[i].size()) {
-            Oper *operptr = dynamic_cast<Oper*>(infixLines[i][0]);
-            if (operptr) {
-                if (operptr -> getType() == ENDWHILE) {
-                    endwhiles.push_back(i);
-                }
-            }
-        }
-    }
-    return endwhiles;
 }
 
 void analizeArrayElements(std::vector<Lexem *> &infix) {
@@ -120,7 +104,6 @@ void analizeArrayElements(std::vector<Lexem *> &infix) {
         }
         arrayElementsLocations.pop();
     }
-
 }
 
 void initIfJumps(std::vector< std::vector<Lexem *> > &infixLines) {
@@ -158,10 +141,9 @@ void initIfJumps(std::vector< std::vector<Lexem *> > &infixLines) {
     }
 }
 
-void initWhileJumps(std::vector <std::vector<Lexem*> > &infixLines) {
+void initWhileJumps(const std::vector <std::vector<Lexem*> > &infixLines) {
     std::stack<int> whileLines;
     std::vector<int> endwhileLines;
-    int whileLinesSize;
 
     for (int i = 0; i < (int)infixLines.size(); i++) {
         if (infixLines[i].size()) {
@@ -169,26 +151,18 @@ void initWhileJumps(std::vector <std::vector<Lexem*> > &infixLines) {
             if (operptr) {
                 if (operptr -> getType() == WHILE) {
                     whileLines.push(i);
+                } else if (operptr -> getType() == ENDWHILE) {
+                    if (whileLines.size()) {
+                        conditionJumpLines[whileLines.top()] = i + 1;
+                        conditionJumpLines[i] = whileLines.top();
+                        whileLines.pop();
+                    } else {
+                        std::cout << "endwhile on line " << i << " but no while found" << std::endl;
+                    }
                 }
             }
         }
     }
-    endwhileLines = findEndwhiles(infixLines, 0);
-    whileLinesSize = whileLines.size();
-
-    if (whileLinesSize == (int)endwhileLines.size()) {
-        for (int i = 0; i < whileLinesSize; i++) {
-            int currentWhile = whileLines.top();
-            int currentEndwhile = endwhileLines[i];
-
-            conditionJumpLines[currentWhile] = currentEndwhile + 1;
-            conditionJumpLines[currentEndwhile] = currentWhile;
-            whileLines.pop();
-        }
-    } else {
-        std::cout << "while - endwhile don't match!" << std::endl;
-    }    
-
 }
 
 int evaluatePoliz(std::vector<Lexem *> poliz, int row, int *result) {
@@ -207,7 +181,6 @@ int evaluatePoliz(std::vector<Lexem *> poliz, int row, int *result) {
             computing.push(lexemIter);
             // std::cout << "size of computing: " << computing.size() << std::endl;
         } else if (computing.size() > 0) {
-
             if (computing.size() == 1) {
                 Lexem *operand = computing.top();
                 computing.pop();
@@ -236,7 +209,6 @@ int evaluatePoliz(std::vector<Lexem *> poliz, int row, int *result) {
                 computing.pop();
                 tempNum = lexemOper -> getResultTwo(left, right);
             }
-            
             // get result of operation
             if (newTempResult) {
                 delete newTempResult;
@@ -244,17 +216,15 @@ int evaluatePoliz(std::vector<Lexem *> poliz, int row, int *result) {
             Lexem *newTempResult = new Number(tempNum);
             computing.push(newTempResult);
 
-        } else 
-            if (lexemIter -> getType() == ELSE || lexemIter -> getType() == ENDWHILE) {
-                // skip else or jump to while condition
-                return conditionJumpLines[row];
-            } else if (lexemIter -> getType() == ENDIF) {
-                continue;
-            }
-            else {
-                std::cout << "Incorrect expression" << std::endl;
-                break;
-            }
+        } else if (lexemIter -> getType() == ELSE || lexemIter -> getType() == ENDWHILE) {
+            // skip else or jump to while condition
+            return conditionJumpLines[row];
+        } else if (lexemIter -> getType() == ENDIF) {
+            continue;
+        } else {
+            std::cout << "Incorrect expression" << std::endl;
+            break;
+        }
     }
 
     if (computing.size() == 1) {
@@ -265,6 +235,6 @@ int evaluatePoliz(std::vector<Lexem *> poliz, int row, int *result) {
         *result = tempNum;
         return row + 1;
     }
-    //std::cout << "Something went wrong" << std::endl;
+    // std::cout << "Something went wrong" << std::endl;
     return row + 1;
 }

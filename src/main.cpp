@@ -11,7 +11,6 @@
 extern std::map<std::string, Array*> arraysMap;
 
 bool prompt(std::string *codeline) {
-    
     std::getline(std::cin, *codeline);
     if (std::cin.eof()) {
         return false;
@@ -43,7 +42,7 @@ int main() {
         analizeArrayElements(infixLines[i]);
     }
 
-    for (const auto &infix: infixLines) {
+    for (const auto &infix : infixLines) {
         polizLines.push_back(buildPoliz(infix));
     }
 
@@ -52,6 +51,5 @@ int main() {
     while (0 <= row && row < (int)polizLines.size()) {
         row = evaluatePoliz(polizLines[row], row, &result);
     }
-    
     return 0;
 }
