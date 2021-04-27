@@ -25,38 +25,6 @@ void initLabels(std::vector<Lexem *> &infix, int row) {
     }
 }
 
-// std::vector<int> findElse(const std::vector< std::vector<Lexem *> > &infixLines, int startRow) {
-//     std::vector<int> elses;
-
-//     for (int i = startRow + 1; i < (int)infixLines.size(); i++) {
-//         if (infixLines[i].size()) {
-//             Oper *operptr = dynamic_cast<Oper*>(infixLines[i][0]);
-//             if (operptr) {
-//                 if (operptr -> getType() == ELSE) {
-//                     elses.push_back(i);
-//                 }
-//             }
-//         }
-//     }
-//     return elses;
-// }
-
-// std::vector<int> findEndif(std::vector< std::vector<Lexem *> > &infixLines, int startRow) {
-//     std::vector<int> endifs;
-
-//     for (int i = startRow + 1; i < (int)infixLines.size(); i++) {
-//         if (infixLines[i].size()) {
-//             Oper *operptr = dynamic_cast<Oper*>(infixLines[i][0]);
-//             if (operptr) {
-//                 if (operptr -> getType() == ENDIF) {
-//                     endifs.push_back(i);
-//                 }
-//             }
-//         }
-//     }
-//     return endifs;
-// }
-
 void analizeArrayElements(std::vector<Lexem *> &infix) {
     int assignLocation = -1;
     std::stack<int> arrayElementsLocations;
