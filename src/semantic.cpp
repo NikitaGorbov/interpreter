@@ -25,37 +25,37 @@ void initLabels(std::vector<Lexem *> &infix, int row) {
     }
 }
 
-std::vector<int> findElse(const std::vector< std::vector<Lexem *> > &infixLines, int startRow) {
-    std::vector<int> elses;
+// std::vector<int> findElse(const std::vector< std::vector<Lexem *> > &infixLines, int startRow) {
+//     std::vector<int> elses;
 
-    for (int i = startRow + 1; i < (int)infixLines.size(); i++) {
-        if (infixLines[i].size()) {
-            Oper *operptr = dynamic_cast<Oper*>(infixLines[i][0]);
-            if (operptr) {
-                if (operptr -> getType() == ELSE) {
-                    elses.push_back(i);
-                }
-            }
-        }
-    }
-    return elses;
-}
+//     for (int i = startRow + 1; i < (int)infixLines.size(); i++) {
+//         if (infixLines[i].size()) {
+//             Oper *operptr = dynamic_cast<Oper*>(infixLines[i][0]);
+//             if (operptr) {
+//                 if (operptr -> getType() == ELSE) {
+//                     elses.push_back(i);
+//                 }
+//             }
+//         }
+//     }
+//     return elses;
+// }
 
-std::vector<int> findEndif(std::vector< std::vector<Lexem *> > &infixLines, int startRow) {
-    std::vector<int> endifs;
+// std::vector<int> findEndif(std::vector< std::vector<Lexem *> > &infixLines, int startRow) {
+//     std::vector<int> endifs;
 
-    for (int i = startRow + 1; i < (int)infixLines.size(); i++) {
-        if (infixLines[i].size()) {
-            Oper *operptr = dynamic_cast<Oper*>(infixLines[i][0]);
-            if (operptr) {
-                if (operptr -> getType() == ENDIF) {
-                    endifs.push_back(i);
-                }
-            }
-        }
-    }
-    return endifs;
-}
+//     for (int i = startRow + 1; i < (int)infixLines.size(); i++) {
+//         if (infixLines[i].size()) {
+//             Oper *operptr = dynamic_cast<Oper*>(infixLines[i][0]);
+//             if (operptr) {
+//                 if (operptr -> getType() == ENDIF) {
+//                     endifs.push_back(i);
+//                 }
+//             }
+//         }
+//     }
+//     return endifs;
+// }
 
 void analizeArrayElements(std::vector<Lexem *> &infix) {
     int assignLocation = -1;
@@ -107,37 +107,43 @@ void analizeArrayElements(std::vector<Lexem *> &infix) {
 }
 
 void initIfJumps(std::vector< std::vector<Lexem *> > &infixLines) {
-    std::stack<int> ifLines;
-    std::vector<int> elseLines;
-    std::vector<int> endifLines;
-    int ifLinesSize;
+    std::stack<int> ifElseLines;
+    std::stack<int> types;     // 0 - if, 1 - else
+    int curIF, curElse, curEndif, typeIf, typeElse;
 
     for (int i = 0; i < (int)infixLines.size(); i++) {
         if (infixLines[i].size()) {
             Oper *operptr = dynamic_cast<Oper*>(infixLines[i][0]);
             if (operptr) {
                 if (operptr -> getType() == IF) {
-                    ifLines.push(i);
+                    ifElseLines.push(i);
+                    types.push(0);
+                } else if (operptr -> getType() == ELSE) {
+                    ifElseLines.push(i);
+                    types.push(1);
+                } else if (operptr -> getType() == ENDIF) {
+                    if (ifElseLines.size() > 1) {
+                        curElse = ifElseLines.top();
+                        ifElseLines.pop();
+                        curIF = ifElseLines.top();
+                        ifElseLines.pop();
+                        curEndif = i;
+                        typeElse = types.top();
+                        types.pop();
+                        typeIf = types.top();
+                        types.pop();
+                        if (typeIf == 0 && typeElse == 1) {
+                            conditionJumpLines[curIF] = curElse + 1;
+                            conditionJumpLines[curElse] = curEndif + 1;
+                        } else {
+                            std::cout << "if - else - endif don't match" << std::endl;
+                        }
+                    } else {
+                        std::cout << "if - else - endif don't match" << std::endl;
+                    }
                 }
             }
         }
-    }
-    elseLines = findElse(infixLines, 0);
-    endifLines = findEndif(infixLines, 0);
-
-    ifLinesSize = ifLines.size();
-
-    if (ifLinesSize == (int)elseLines.size() && ifLinesSize == (int)endifLines.size()) {
-        for (int i = 0; i < ifLinesSize; i++) {
-            int currentIf = ifLines.top();
-            int currentElse = elseLines[i];
-            int currentEndif = endifLines[i];
-            conditionJumpLines[currentIf] = currentElse + 1;
-            conditionJumpLines[currentElse] = currentEndif + 1;
-            ifLines.pop();
-        }
-    } else {
-        std::cout << "if - else - endif don't match!" << std::endl;
     }
 }
 
