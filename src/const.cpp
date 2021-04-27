@@ -1,8 +1,5 @@
 #include <string>
-
-
-#ifndef _CONST_H
-#define _CONST_H
+#include "const.h"
 
 int PRIORITY[] = {
     -1, -1, -1, -1, -1, -1, -1,
@@ -45,5 +42,3 @@ std::string OPERTEXT[] = {
 };
 
 int OP_NUM = sizeof(OPERTEXT) / sizeof(std::string);
-
-#endif

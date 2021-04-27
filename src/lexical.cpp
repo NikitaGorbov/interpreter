@@ -4,7 +4,7 @@
 #include "lexem.h"
 #include "lexical.h"
 
-std::map<std::string, Variable*> variablesMap;
+std::map<std::string, int> variablesMap;
 std::map<std::string, int> labelsMap;
 std::map<int, int> conditionJumpLines;
 std::map<std::string, Array*> arraysMap;
@@ -52,10 +52,13 @@ Variable *read_variable(std::string codeline, int *pos) {
                 std::string varName = codeline.substr(*pos, j - *pos);
 
                 if (variablesMap.find(varName) == variablesMap.end()) {
-                    Variable *newVar = new Variable(varName);
-                    variablesMap[varName] = newVar;
+                    // Variable *newVar = new Variable(varName);
+                    // variablesMap[varName] = newVar;
+                    variablesMap[varName] = 0;
                 }
-                tmp = variablesMap[varName];
+                // tmp = variablesMap[varName];
+                Variable *newVar = new Variable(varName);
+                tmp = newVar;
                 // set i to position after variable name
                 *pos = j - 1;
                 break;

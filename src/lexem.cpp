@@ -6,6 +6,7 @@
 extern std::map<std::string, int> labelsMap;
 extern std::map<int, int> conditionJumpLines;
 extern std::map<std::string, Array*> arraysMap;
+extern std::map<std::string, int> variablesMap;
 
 int Lexem::getPriority() {
     return -1;
@@ -198,11 +199,11 @@ int Oper::getPriority() {
 Variable::Variable(std::string name, int value) : name(name), value(value) {}
 
 int Variable::getValue() {
-    return value;
+    return variablesMap[name];
 }
 
 void Variable::setValue(int newValue) {
-    value = newValue;
+    variablesMap[name] = newValue;
 }
 
 std::string Variable::getName() {
