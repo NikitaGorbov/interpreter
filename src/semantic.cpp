@@ -35,7 +35,7 @@ void analizeArrayElements(std::vector<Lexem *> &infix) {
     }
 
     for (int i = 0; i < (int)infix.size() - 1; i++) {
-        if (infix[i] -> getType() == ASSIGN) {
+        if (infix[i] && infix[i] -> getType() == ASSIGN) {
             assignLocation = i;
         } else {
             Variable *varptr = dynamic_cast<Variable*>(infix[i]);
