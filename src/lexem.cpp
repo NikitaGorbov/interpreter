@@ -1,4 +1,6 @@
 #include <string>
+#include <stack>
+#include <vector>
 #include <iostream>
 #include "const.h"
 #include "lexem.h"
@@ -6,7 +8,8 @@
 extern std::map<std::string, int> labelsMap;
 extern std::map<int, int> conditionJumpLines;
 extern std::map<std::string, Array*> arraysMap;
-extern std::map<std::string, int> variablesMap;
+
+extern std::stack<Space> SpacesStack;
 
 int Lexem::getPriority() {
     return -1;
@@ -18,6 +21,13 @@ int Lexem::getValue() {
 
 void Lexem::setValue(int) {
 }
+
+Function::Function(std::string &name, int line, int argsNumber, const std::vector<std::string> &argsNames)
+    : name(name), line(line), argsNumber(argsNumber), argsNames(argsNames) {}
+
+int Function::getLine() {return line;}
+int Function::getArgsNumber() {return argsNumber;}
+const std::vector<std::string> &Function::getArgsNames() {return argsNames;}
 
 OPERATOR Lexem::getType() {
     // return ASSIGN;
@@ -47,14 +57,13 @@ int Oper::getResultOne(Lexem *operand, bool *jumpFlag, int row) {
     int ans = 0;
     switch (opertype) {
         case GOTO:
-        ans = labelsMap[operand -> getName()];
         *jumpFlag = true;
-        break;
+        return labelsMap[operand -> getName()];
 
         case IF:
         if (operand -> getValue() == 0) {
-            ans = conditionJumpLines[row];
             *jumpFlag = true;
+            return conditionJumpLines[row];
         } else {
             *jumpFlag = false;
         }
@@ -62,8 +71,8 @@ int Oper::getResultOne(Lexem *operand, bool *jumpFlag, int row) {
 
         case WHILE:
         if (operand -> getValue() == 0) {
-            ans = conditionJumpLines[row];
             *jumpFlag = true;
+            return conditionJumpLines[row];
         } else {
             *jumpFlag = false;
         }
@@ -81,94 +90,74 @@ int Oper::getResultOne(Lexem *operand, bool *jumpFlag, int row) {
 }
 
 int Oper::getResultTwo(Lexem* left, Lexem* right) {
-    int ans = 0;
     switch (opertype) {
         case ASSIGN:
         left -> setValue(right -> getValue());
-        ans = left -> getValue();
-        break;
+        return left -> getValue();
 
         case OR:
-        ans = (left -> getValue() || right -> getValue());
-        break;
+        return (left -> getValue() || right -> getValue());
 
         case AND:
-        ans = (left -> getValue() && right -> getValue());
-        break;
+        return (left -> getValue() && right -> getValue());
 
         case BITOR:
-        ans = (left -> getValue() | right -> getValue());
-        break;
+        return (left -> getValue() | right -> getValue());
 
         case XOR:
-        ans = (left -> getValue() ^ right -> getValue());
-        break;
+        return (left -> getValue() ^ right -> getValue());
 
         case BITAND:
-        ans = (left -> getValue() & right -> getValue());
-        break;
+        return (left -> getValue() & right -> getValue());
 
         case EQ:
-        ans = (left -> getValue() == right -> getValue());
-        break;
+        return (left -> getValue() == right -> getValue());
 
         case NEQ:
-        ans = (left -> getValue() != right -> getValue());
-        break;
+        return (left -> getValue() != right -> getValue());
 
         case LEQ:
-        ans = left -> getValue() <= right -> getValue();
-        break;
+        return left -> getValue() <= right -> getValue();
 
         case LT:
-        ans = left -> getValue() < right -> getValue();
-        break;
+        return left -> getValue() < right -> getValue();
 
         case GEQ:
-        ans = left -> getValue() >= right -> getValue();
-        break;
+        return left -> getValue() >= right -> getValue();
 
         case GT:
-        ans = left -> getValue() > right -> getValue();
-        break;
+        return left -> getValue() > right -> getValue();
 
         case SHL:
-        ans = left -> getValue() << right -> getValue();
-        break;
+        return left -> getValue() << right -> getValue();
 
         case SHR:
-        ans = left -> getValue() >> right -> getValue();
-        break;
+        return left -> getValue() >> right -> getValue();
 
         case PLUS:
-        ans = left -> getValue() + right -> getValue();
-        break;
+        return left -> getValue() + right -> getValue();
 
         case MINUS:
-        ans = left -> getValue() - right -> getValue();
-        break;
+        return left -> getValue() - right -> getValue();
 
         case MULTIPLY:
-        ans = left -> getValue() * right -> getValue();
-        break;
+        return left -> getValue() * right -> getValue();
 
         case DIV:
         if (right -> getValue() != 0) {
-            ans = left -> getValue() / right -> getValue();
+            return left -> getValue() / right -> getValue();
         } else {
             std::cout << "Devision by zero!" << std::endl;
-            ans = 0;
+            return 0;
         }
-        break;
 
         case MOD:
         if (right -> getValue() != 0) {
-            ans = left -> getValue() % right -> getValue();
+            return left -> getValue() % right -> getValue();
         } else {
             std::cout << "Devision by zero!" << std::endl;
-            ans = 0;
+            return 0;
         }
-        break;
 
         case SIZE:
         {
@@ -183,27 +172,26 @@ int Oper::getResultTwo(Lexem* left, Lexem* right) {
             std::cout << left -> getName() << " was not allocated" << std::endl;
             break;
         }
-        ans = arraysMap[left -> getName()] -> getData(right -> getValue());
-        break;
+        return arraysMap[left -> getName()] -> getData(right -> getValue());
 
         default:
         std::cout << "Unknown operator" << std::endl;
     }
-    return ans;
+    return 0;
 }
 
 int Oper::getPriority() {
     return PRIORITY[opertype];
 }
 
-Variable::Variable(std::string name, int value) : name(name), value(value) {}
+Variable::Variable(std::string &name, int value) : name(name), value(value) {}
 
 int Variable::getValue() {
-    return variablesMap[name];
+    return SpacesStack.top().variablesMap[name];
 }
 
 void Variable::setValue(int newValue) {
-    variablesMap[name] = newValue;
+    SpacesStack.top().variablesMap[name] = newValue;
 }
 
 std::string Variable::getName() {

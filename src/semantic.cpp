@@ -2,24 +2,70 @@
 #include <stack>
 #include <string>
 #include <iostream>
+#include <map>
 #include "lexem.h"
 #include "lexical.h"
 #include "semantic.h"
 
+#define MAX_CODE_SIZE 1000000
+
 extern std::map<std::string, Array*> arraysMap;
+extern std::map<std::string, Function*> functionsMap;
+extern int StartLine;
+extern int NumberOfLines;
+extern std::stack<Space> SpacesStack;
 
 void initLabels(std::vector<Lexem *> &infix, int row) {
-    for (int i = 1; i < (int)infix.size(); i++) {
+    int i = 1;
+    if (i < (int)infix.size() && infix[i - 1]) {
         Variable *varptr = dynamic_cast<Variable*>(infix[i - 1]);
         Oper *operptr = dynamic_cast<Oper*>(infix[i]);
         if (varptr && operptr) {
             if (operptr -> getType() == COLON) {
-                labelsMap[varptr -> getName()] = row;
-                //delete infix[i - 1];
+                if (varptr -> getName() == "START") {
+                    StartLine = row;
+                }
+                labelsMap[varptr -> getName()] = row + 1;
+                delete infix[i - 1];
                 delete infix[i];
                 infix[i - 1] = nullptr;
                 infix[i] = nullptr;
                 i++;
+            }
+        }
+    }
+}
+
+void findFunctions(std::vector<Lexem *> &infix, int row) {
+    int argsNum = 0;
+    int line;
+    int i = 1;
+
+    if (i < (int)infix.size() && infix[i - 1]) {
+        std::vector<std::string> varNames;
+        std::string functionName;
+        Variable *varptr1 = dynamic_cast<Variable*>(infix[i - 1]);
+        Variable *varptr2 = dynamic_cast<Variable*>(infix[i]);
+        if (varptr1 && varptr1 -> getName() == "function") {
+            if (varptr2) {
+                line = row;
+                functionName = varptr2 -> getName();
+                if (infix[i + 1] && infix[i + 1] -> getType() == LBRACKET) {
+                    for (int j = i + 2; j < (int)infix.size(); j++) {
+                        if (infix[j] && infix[j] -> getType() == RBRACKET) {
+                            break;
+                        } else {
+                            varNames.push_back(infix[j] -> getName());
+                            argsNum++;
+                        }
+                    }
+                }
+                for (int i = 0; i < (int)infix.size(); i++) {
+                    delete infix[i];
+                    infix[i] = nullptr;
+                }
+                Function *newFun = new Function(functionName, line, argsNum, varNames);
+                functionsMap[functionName] = newFun;
             }
         }
     }
@@ -139,7 +185,8 @@ void initWhileJumps(const std::vector <std::vector<Lexem*> > &infixLines) {
     }
 }
 
-int evaluatePoliz(std::vector<Lexem *> poliz, int row, int *result) {
+int evaluatePoliz(int row, int *result, const std::vector< std::vector<Lexem *> > &wholeCode, bool *hasResult) {
+    const std::vector<Lexem *> poliz = wholeCode[row];
     std::stack<Lexem *> computing;
     int tempNum;
     Lexem *newTempResult = nullptr;
@@ -152,9 +199,41 @@ int evaluatePoliz(std::vector<Lexem *> poliz, int row, int *result) {
         }
         lexemOper = dynamic_cast<Oper*>(lexemIter);
         if (!lexemOper) {
-            computing.push(lexemIter);
-            // std::cout << "size of computing: " << computing.size() << std::endl;
+            if (functionsMap.find(lexemIter -> getName()) == functionsMap.end()) {
+                computing.push(lexemIter);
+            } else {
+                // call function
+                Space newSpace;
+                int line = functionsMap[lexemIter -> getName()] -> getLine();
+                int argsNum = functionsMap[lexemIter -> getName()] -> getArgsNumber();
+                const std::vector<std::string> &argsNames = functionsMap[lexemIter -> getName()] -> getArgsNames();
+                // copy arguments to funciton
+                if (computing.size() >= argsNum) {
+                    for (auto argsIterator : argsNames) {
+                        newSpace.variablesMap[argsIterator] = computing.top() -> getValue();
+                        computing.pop();
+                    }
+                }
+
+                SpacesStack.push(newSpace);
+                int result = 0;
+                bool hasResult = false;
+                while (0 <= line && line < NumberOfLines) {
+                    line = evaluatePoliz(line, &result, wholeCode, &hasResult);
+                }
+                SpacesStack.pop();
+                if (hasResult) {
+                    Number *newNum = new Number(result);
+                    computing.push(newNum);
+                }
+            }
         } else if (computing.size() > 0) {
+            if (lexemOper -> getType() == RETURN) {
+                *result = computing.top() -> getValue();
+                *hasResult = true;
+                return MAX_CODE_SIZE;
+            }
+
             if (computing.size() == 1) {
                 Lexem *operand = computing.top();
                 computing.pop();
@@ -165,7 +244,6 @@ int evaluatePoliz(std::vector<Lexem *> poliz, int row, int *result) {
             }
 
             if (lexemOper -> getType() == LVALUEARRAY && computing.size() > 2) {
-                // std::cout << "here" << std::endl;
                 Lexem *first = computing.top();
                 computing.pop();
                 Lexem *second = computing.top();
@@ -201,14 +279,8 @@ int evaluatePoliz(std::vector<Lexem *> poliz, int row, int *result) {
         }
     }
 
-    if (computing.size() == 1) {
-        tempNum = computing.top() -> getValue();
-        if (newTempResult) {
-            delete newTempResult;
-        }
-        *result = tempNum;
-        return row + 1;
+    if (newTempResult) {
+        delete newTempResult;
     }
-    // std::cout << "Something went wrong" << std::endl;
     return row + 1;
 }

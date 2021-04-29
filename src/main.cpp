@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <stack>
 #include <iostream>
 
 #include "const.h"
@@ -8,7 +9,13 @@
 #include "syntax.h"
 #include "semantic.h"
 
+std::map<std::string, Function*> functionsMap;
+int StartLine = -1;
+int NumberOfLines; // size of poliz
 extern std::map<std::string, Array*> arraysMap;
+
+Space GlobalSpace;
+std::stack<Space> SpacesStack;
 
 bool prompt(std::string *codeline) {
     std::getline(std::cin, *codeline);
@@ -20,6 +27,8 @@ bool prompt(std::string *codeline) {
 }
 
 int main() {
+    SpacesStack.push(GlobalSpace);
+
     std::string codeline;
     std::vector< std::vector<Lexem *> > infixLines, polizLines;
 
@@ -33,23 +42,28 @@ int main() {
 
     for (int row = 0; row < (int)infixLines.size(); row++) {
         initLabels(infixLines[row], row);
+        findFunctions(infixLines[row], row);
+        analizeArrayElements(infixLines[row]);
     }
 
     initIfJumps(infixLines);
     initWhileJumps(infixLines);
 
-    for (int i = 0; i < (int)infixLines.size(); i++) {
-        analizeArrayElements(infixLines[i]);
-    }
-
     for (const auto &infix : infixLines) {
         polizLines.push_back(buildPoliz(infix));
     }
+    NumberOfLines = polizLines.size();
 
-    int row = 0;
+    if (StartLine == -1) {
+        std::cout << "No 'START:' label found" << std::endl;
+        return 1;
+    }
+
+    int row = StartLine;
     int result = 0;
-    while (0 <= row && row < (int)polizLines.size()) {
-        row = evaluatePoliz(polizLines[row], row, &result);
+    bool hasResult = false;
+    while (0 <= row && row < NumberOfLines) {
+        row = evaluatePoliz(row, &result, polizLines, &hasResult);
     }
     return 0;
 }

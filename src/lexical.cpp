@@ -9,7 +9,7 @@ std::map<std::string, int> labelsMap;
 std::map<int, int> conditionJumpLines;
 std::map<std::string, Array*> arraysMap;
 
-Number *read_number(std::string codeline, int *pos) {
+Number *read_number(const std::string &codeline, int *pos) {
     int number = 0;
 
     if (codeline[*pos] >= '0' && codeline[*pos] <= '9') {
@@ -26,7 +26,7 @@ Number *read_number(std::string codeline, int *pos) {
     return nullptr;
 }
 
-Oper *read_operator(std::string codeline, int *pos) {
+Oper *read_operator(const std::string &codeline, int *pos) {
     for (int op = 0; op < OP_NUM; op++) {
         std::string subcodeline = codeline.substr(*pos, OPERTEXT[op].size());
         if (!OPERTEXT[op].compare(subcodeline)) {
@@ -37,7 +37,7 @@ Oper *read_operator(std::string codeline, int *pos) {
     return nullptr;
 }
 
-Variable *read_variable(std::string codeline, int *pos) {
+Variable *read_variable(const std::string &codeline, int *pos) {
     Variable *tmp = nullptr;
 
     if ((codeline[*pos] >= 'a' && codeline[*pos] <= 'z') ||
@@ -47,16 +47,12 @@ Variable *read_variable(std::string codeline, int *pos) {
             if ((codeline[j] >= 'a' && codeline[j] <= 'z') ||
                 (codeline[j] >= 'A' && codeline[j] <= 'Z')) {
                 // DO NOTHING
-
             } else {
                 std::string varName = codeline.substr(*pos, j - *pos);
 
                 if (variablesMap.find(varName) == variablesMap.end()) {
-                    // Variable *newVar = new Variable(varName);
-                    // variablesMap[varName] = newVar;
                     variablesMap[varName] = 0;
                 }
-                // tmp = variablesMap[varName];
                 Variable *newVar = new Variable(varName);
                 tmp = newVar;
                 // set i to position after variable name
@@ -70,7 +66,6 @@ Variable *read_variable(std::string codeline, int *pos) {
 
 std::vector<Lexem *> parseLexem(std::string codeline) {
     std::vector<Lexem *> Lex;
-    // int number = 0;
 
     for (int i = 0; i <= (int)codeline.size(); i++) {
         Lexem *newLexem = nullptr;

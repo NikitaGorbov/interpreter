@@ -4,6 +4,10 @@
 #ifndef _LEXEM_H
 #define _LEXEM_H
 
+struct Space {
+    std::map<std::string, int> variablesMap;
+};
+
 class Lexem {
 public:
     Lexem();
@@ -13,6 +17,18 @@ public:
     virtual ::OPERATOR getType();
     virtual std::string getName();
     virtual ~Lexem();
+};
+
+class Function {
+    std::string name;
+    int line;
+    int argsNumber;
+    std::vector<std::string> argsNames;
+public:
+    Function(std::string &, int, int, const std::vector<std::string> &);
+    int getLine();
+    int getArgsNumber();
+    const std::vector<std::string> &getArgsNames();
 };
 
 class Number : public Lexem {
@@ -37,7 +53,7 @@ class Variable : public Lexem {
     std::string name;
     int value;
 public:
-    Variable(std::string, int = 0);
+    Variable(std::string &, int = 0);
     int getValue();
     void setValue(int value);
     std::string getName();

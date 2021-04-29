@@ -3,6 +3,7 @@
 
 enum OPERATOR {
     IF, ELSE, ENDIF, WHILE, ENDWHILE, GOTO, COLON,
+    RETURN,
     PRINT,
     SIZE,
     ASSIGN,

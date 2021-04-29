@@ -7,6 +7,7 @@ int PRIORITY[] = {
     -1,
     -1,
     -1,
+    -1,
     0, 0, 0, 0,
     1,
     1,
@@ -23,6 +24,7 @@ int PRIORITY[] = {
 
 std::string OPERTEXT[] = {
     "if", "else", "endif", "while", "endwhile", "goto", ":",
+    "return",
     "print",
     "size",
     " := " ,
