@@ -6,6 +6,6 @@ function f(n)
  endif
 
 START:
-x := 28
+x := 20
 print f(x)
 return 0
