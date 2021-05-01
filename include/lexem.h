@@ -10,23 +10,22 @@ struct Space {
 
 class Lexem {
 public:
-    Lexem();
+    Lexem() {}
     virtual int getPriority();
     virtual int getValue();
     virtual void setValue(int);
-    virtual ::OPERATOR getType();
-    virtual std::string getName();
-    virtual ~Lexem();
+    virtual OPERATOR getType();
+    virtual const std::string getName();
+    virtual ~Lexem() {}
 };
 
 class Function {
-    std::string name;
     int line;
     int argsNumber;
     std::vector<std::string> argsNames;
 public:
-    Function(std::string &, int, int, const std::vector<std::string> &);
-    int getLine();
+    Function(int, int, const std::vector<std::string> &);
+    int getLine() {return line;}
     int getArgsNumber();
     const std::vector<std::string> &getArgsNames();
 };
@@ -34,14 +33,14 @@ public:
 class Number : public Lexem {
     int value;
 public:
-    Number(int);
-    virtual int getValue();
+    Number(int number) : value(number) {}
+    int getValue();
 };
 
 class Oper : public Lexem {
     OPERATOR opertype;
 public:
-    Oper(OPERATOR);
+    Oper(OPERATOR opertype) : opertype(opertype) {}
     OPERATOR getType();
     int getPriority();
     int getValue(const Number& left, const Number& right);
@@ -51,12 +50,11 @@ public:
 
 class Variable : public Lexem {
     std::string name;
-    int value;
 public:
-    Variable(std::string &, int = 0);
+    Variable(std::string &);
     int getValue();
     void setValue(int value);
-    std::string getName();
+    const std::string getName();
 };
 
 class Array : public Lexem {

@@ -22,32 +22,23 @@ int Lexem::getValue() {
 void Lexem::setValue(int) {
 }
 
-Function::Function(std::string &name, int line, int argsNumber, const std::vector<std::string> &argsNames)
-    : name(name), line(line), argsNumber(argsNumber), argsNames(argsNames) {}
+Function::Function(int line, int argsNumber, const std::vector<std::string> &argsNames)
+    : line(line), argsNumber(argsNumber), argsNames(argsNames) {}
 
-int Function::getLine() {return line;}
 int Function::getArgsNumber() {return argsNumber;}
 const std::vector<std::string> &Function::getArgsNames() {return argsNames;}
 
 OPERATOR Lexem::getType() {
-    // return ASSIGN;
+    return NOT_OPERATOR;
 }
-
-Lexem::Lexem() {}
-
-Lexem::~Lexem() {}
-
-Number::Number(int number) : value(number) {}
 
 int Number::getValue() {
     return value;
 }
 
-std::string Lexem::getName() {
+const std::string Lexem::getName() {
     return "ERROR";
 }
-
-Oper::Oper(OPERATOR opertype) : opertype(opertype) {}
 
 OPERATOR Oper::getType() {
     return opertype;
@@ -184,7 +175,7 @@ int Oper::getPriority() {
     return PRIORITY[opertype];
 }
 
-Variable::Variable(std::string &name, int value) : name(name), value(value) {}
+Variable::Variable(std::string &name) : name(name) {}
 
 int Variable::getValue() {
     return SpacesStack.top().variablesMap[name];
@@ -194,7 +185,7 @@ void Variable::setValue(int newValue) {
     SpacesStack.top().variablesMap[name] = newValue;
 }
 
-std::string Variable::getName() {
+const std::string Variable::getName() {
     return name;
 }
 

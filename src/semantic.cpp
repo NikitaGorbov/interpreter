@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include <map>
+#include <cstddef>
 #include "lexem.h"
 #include "lexical.h"
 #include "semantic.h"
@@ -16,8 +17,8 @@ extern int NumberOfLines;
 extern std::stack<Space> SpacesStack;
 
 void initLabels(std::vector<Lexem *> &infix, int row) {
-    int i = 1;
-    if (i < (int)infix.size() && infix[i - 1]) {
+    size_t i = 1;
+    if (i < infix.size() && infix[i - 1]) {
         Variable *varptr = dynamic_cast<Variable*>(infix[i - 1]);
         Oper *operptr = dynamic_cast<Oper*>(infix[i]);
         if (varptr && operptr) {
@@ -39,9 +40,9 @@ void initLabels(std::vector<Lexem *> &infix, int row) {
 void findFunctions(std::vector<Lexem *> &infix, int row) {
     int argsNum = 0;
     int line;
-    int i = 1;
+    size_t i = 1;
 
-    if (i < (int)infix.size() && infix[i - 1]) {
+    if (i < infix.size() && infix[i - 1]) {
         std::vector<std::string> varNames;
         std::string functionName;
         Variable *varptr1 = dynamic_cast<Variable*>(infix[i - 1]);
@@ -51,7 +52,7 @@ void findFunctions(std::vector<Lexem *> &infix, int row) {
                 line = row;
                 functionName = varptr2 -> getName();
                 if (infix[i + 1] && infix[i + 1] -> getType() == LBRACKET) {
-                    for (int j = i + 2; j < (int)infix.size(); j++) {
+                    for (size_t j = i + 2; j < infix.size(); j++) {
                         if (infix[j] && infix[j] -> getType() == RBRACKET) {
                             break;
                         } else {
@@ -60,11 +61,11 @@ void findFunctions(std::vector<Lexem *> &infix, int row) {
                         }
                     }
                 }
-                for (int i = 0; i < (int)infix.size(); i++) {
+                for (size_t i = 0; i < infix.size(); i++) {
                     delete infix[i];
                     infix[i] = nullptr;
                 }
-                Function *newFun = new Function(functionName, line, argsNum, varNames);
+                Function *newFun = new Function(line, argsNum, varNames);
                 functionsMap[functionName] = newFun;
             }
         }
@@ -80,7 +81,7 @@ void analizeArrayElements(std::vector<Lexem *> &infix) {
         return;
     }
 
-    for (int i = 0; i < (int)infix.size() - 1; i++) {
+    for (size_t i = 0; i < infix.size() - 1; i++) {
         if (infix[i] && infix[i] -> getType() == ASSIGN) {
             assignLocation = i;
         } else {
@@ -106,8 +107,8 @@ void analizeArrayElements(std::vector<Lexem *> &infix) {
             delete infix[currentArrPosition+1];
             infix[currentArrPosition+1] = rvalue;
         }
-        int i = currentArrPosition + 1;
-        while (i < (int)infix.size()) {
+        size_t i = currentArrPosition + 1;
+        while (i < infix.size()) {
             // remove corresponding right square bracket
             if (infix[i] && infix[i] -> getType() == RSQRBRACKET) {
                 delete infix[i];
@@ -125,7 +126,7 @@ void initIfJumps(std::vector< std::vector<Lexem *> > &infixLines) {
     std::stack<int> types;     // 0 - if, 1 - else
     int curIF, curElse, curEndif, typeIf, typeElse;
 
-    for (int i = 0; i < (int)infixLines.size(); i++) {
+    for (size_t i = 0; i < infixLines.size(); i++) {
         if (infixLines[i].size()) {
             Oper *operptr = dynamic_cast<Oper*>(infixLines[i][0]);
             if (operptr) {
@@ -165,7 +166,7 @@ void initWhileJumps(const std::vector <std::vector<Lexem*> > &infixLines) {
     std::stack<int> whileLines;
     std::vector<int> endwhileLines;
 
-    for (int i = 0; i < (int)infixLines.size(); i++) {
+    for (size_t i = 0; i < infixLines.size(); i++) {
         if (infixLines[i].size()) {
             Oper *operptr = dynamic_cast<Oper*>(infixLines[i][0]);
             if (operptr) {
@@ -188,9 +189,9 @@ void initWhileJumps(const std::vector <std::vector<Lexem*> > &infixLines) {
 int evaluatePoliz(int row, int *result, const std::vector< std::vector<Lexem *> > &wholeCode, bool *hasResult) {
     const std::vector<Lexem *> poliz = wholeCode[row];
     std::stack<Lexem *> computing;
-    int tempNum;
-    Lexem *newTempResult = nullptr;
+    int tempNum = 0;
     bool jumpFlag = false;
+    Lexem *newTempResult = nullptr;
     Oper *lexemOper = nullptr;
 
     for (auto lexemIter : poliz) {

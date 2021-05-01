@@ -20,6 +20,7 @@ enum OPERATOR {
     SHL, SHR,
     PLUS, MINUS,
     MULTIPLY, DIV, MOD,
+    NOT_OPERATOR
 };
 
 extern int PRIORITY[];

@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := g++
-CFLAGS = -Wall -Iinclude
+CFLAGS = -Wall -Iinclude -O2
 
 g++: CC = g++ 
 g++: bin obj bin/interpreter

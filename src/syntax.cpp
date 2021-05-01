@@ -21,7 +21,6 @@ std::vector<Lexem *> buildPoliz(const std::vector<Lexem *> &infix) {
                 poliz.push_back(curLexem);
             } else {
                 functions.push(curLexem);
-                // std::cout << "function call found" << std::endl;
             }
 
         } else if (operators.size()) {
